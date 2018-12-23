@@ -51,9 +51,9 @@ namespace NampoSpace
 
             mikataG.Add(nampo);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++)
             {
-                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0)));
+                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0),nampo));
             }
         }
 
@@ -136,7 +136,7 @@ namespace NampoSpace
         }
     }
 
-    abstract class NamTask {
+    class NamTask {
         public NamTask PreTask { get; set; }
         public NamTask NextTask { get; set; }
 
@@ -232,6 +232,7 @@ namespace NampoSpace
                 isShot = false;
                 ShotTimer = 0;
             }
+ 
         }
 
         public override void Draw()
@@ -252,9 +253,12 @@ namespace NampoSpace
 
     class teki : testCharacter
     {
-        public teki(DrawTool drawTool, string pic, Vector2 point, Vector2 vec) : base(drawTool, pic, point, vec)
+        MoveObject target;
+        public teki(DrawTool drawTool, string pic, Vector2 point, Vector2 vec,MoveObject target) : base(drawTool, pic, point, vec)
         {
-            IntervalShot = 36;
+            IntervalShot = 150;
+            this.target = target;
+
         }
 
         public override void Run()
@@ -278,7 +282,7 @@ namespace NampoSpace
         {
             if (isShot == false)
             {
-                this.Add(new Bellet1(DrawTool, Point,true));
+                this.Add(new Bellet2(DrawTool, Point,target));
                 isShot = true;
                 ShotTimer = 0;
             }
@@ -299,7 +303,7 @@ namespace NampoSpace
         }
     }
     */
-
+    //普通の弾
     class Bellet1 : MoveObject
     {
         public int damege;
@@ -353,6 +357,97 @@ namespace NampoSpace
 
     }
     
+    //誘導するの弾
+    class Bellet2 : MoveObject
+    {
+        public int damege;
+        public int LimitCount;//移動距離制限、一定距離過ぎたら消す
+        public int Count;
+        public MoveObject target;
+        public float MaxDegree;
+
+        /*
+        public Bellet2(DrawTool drawTool, Vector2 point) : base(drawTool)
+        {
+            damege = 5;
+            Picture = "・";
+            Point = point;
+            Vector = new Vector2(0, -6);
+            Count = 0;
+            LimitCount = 600;
+
+            Name = drawTool.AddLabel(Picture);
+        }
+
+        public Bellet2(DrawTool drawTool, Vector2 point, bool teki) : base(drawTool)
+        {
+            damege = 5;
+            Picture = "・";
+            Point = point;
+            Vector = new Vector2(0, 6);
+            Count = 0;
+            LimitCount = 600;
+
+            Name = drawTool.AddLabel(Picture);
+        }*/
+
+        
+        public Bellet2(DrawTool drawTool, Vector2 point,MoveObject moveObject) : base(drawTool)
+        {
+            damege = 5;
+            Picture = "◎";
+            Point = point;
+            Vector = new Vector2(0, 0);
+            Count = 0;
+            LimitCount = 600;
+
+            Name = drawTool.AddLabel(Picture);
+
+            target = moveObject;
+            MaxDegree = (float)(((Math.PI * 10) / 180));//約10度がマックス
+        }
+
+
+        public override void Run()
+        {
+            //throw new NotImplementedException();
+            if (Count % 100 < 10)
+            {
+                Vector2 preVector = new Vector2(Vector.X, Vector.Y);
+                preVector = Vector2.Normalize(preVector);
+
+                Vector = target.Point - this.Point;
+                Vector = Vector2.Normalize(Vector);
+
+                if (preVector.X * Vector.X + preVector.Y * Vector.Y > Math.Cos(MaxDegree))
+                {
+                    Vector = new Vector2((float)((Math.Cos(MaxDegree) - Math.Sin(MaxDegree)) * preVector.X),
+                                         (float)((Math.Sin(MaxDegree) + Math.Cos(MaxDegree)) * preVector.Y));
+                }
+
+                Vector = Vector * 3;
+            }
+
+            Point = Point + Vector;
+
+            Count += (int)Vector.Length();
+
+            if (Count > LimitCount)
+            {
+                Remove();
+                DrawTool.RemoveLabel(Name);
+            }
+        }
+
+        public override void Draw()
+        {
+            //throw new NotImplementedException();
+            DrawTool.Draw(Name, Point);
+        }
+
+
+    }
+
     class DrawTool
     {
         public Form form;
