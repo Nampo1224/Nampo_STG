@@ -31,108 +31,27 @@ namespace NampoSpace
 
         DrawTool DrawTool;
         public UserInterface UserInterface;
-
-        //testキャラ
-        testCharacter nampo;
-        MoveObject mikataG, tekiG;
+        StartScene StartScene;
+        GameScene GameScene;
 
         public GameMaster(DrawTool drawTool)
         {
             this.DrawTool = drawTool;
             UserInterface = new UserInterface();
 
-            //DrawTool.AddLabel("@");
-            //DrawTool.Draw("@", new Vector2(200, 100));
-            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
+            StartScene = new StartScene(DrawTool, UserInterface);
+            GameScene = new GameScene(DrawTool,UserInterface);
 
-            //改善の余地あり
-            mikataG = new MoveObject(drawTool);
-            tekiG = new MoveObject(drawTool);
 
-            mikataG.Add(nampo);
-
-            for (int i = 0; i < 5; i++)
-            {
-                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0),nampo));
-            }
         }
 
         public void Run()
         {
-            switch (UserInterface.command)
-            {
-                case 0x20://↑
-                    nampo.Point = nampo.Point + new Vector2(0, -5);
-                    break;
+            GameScene.Run();
+            GameScene.Draw();
 
-                case 0x80://←
-                    nampo.Point = nampo.Point + new Vector2(-5, 0);
-                    break;
-
-                case 0x10://↓
-                    nampo.Point = nampo.Point + new Vector2(0, +5);
-                    break;
-
-                case 0x40://→
-                    nampo.Point = nampo.Point + new Vector2(+5, 0);
-                    break;
-
-                case 0x01://Space//Aボタン
-                    nampo.Shot();
-                    break;
-            }
-
-            RunTask(mikataG);
-            RunTask(tekiG);
-
-            HitCheck((MoveObject)mikataG.NextTask, (MoveObject)tekiG.NextTask);
-
-        }
-
-        public void HitCheck(MoveObject move1G,MoveObject move2G)
-        {
-            var temp1 = move1G;
-            var temp2 = move2G;
-
-            while(temp1 != null)
-            {
-                while(temp2 != null)
-                {
-                    if (
-                        (
-                         (temp1.Point.X >= temp2.Point.X && temp1.Point.X <= temp2.Point.X + 30) ||
-                         (temp2.Point.X >= temp1.Point.X && temp2.Point.X <= temp1.Point.X + 30)
-                         ) &&
-                        (
-                         (temp1.Point.Y >= temp2.Point.Y && temp1.Point.Y <= temp2.Point.Y + 30) ||
-                         (temp2.Point.Y >= temp1.Point.Y && temp2.Point.Y <= temp1.Point.Y + 30)
-                        )
-                       )
-                    {
-                        //あたった
-                        temp1.Remove();
-                        temp2.Remove();
-                        temp1.DrawTool.RemoveLabel(temp1.Name);
-                        temp2.DrawTool.RemoveLabel(temp2.Name);
-                    }
-
-
-                        temp2 = (MoveObject)temp2.NextTask;
-                }
-                temp1 = (MoveObject)temp1.NextTask;
-                temp2 = move2G;
-            }
-        }
-
-        public void RunTask(GameObject gameobjectG)
-        {
-            GameObject temp = (GameObject)gameobjectG.NextTask;
-            while (temp != null)
-            {
-                temp.Run();
-                temp.Draw();
-                temp = (GameObject)temp.NextTask;
-            }
+            StartScene.Run();
+            StartScene.Draw();
         }
     }
 
@@ -175,16 +94,20 @@ namespace NampoSpace
 
     }
     abstract class GameObject : NamTask {
+        public GameObject(DrawTool drawTool)
+        {
+            this.DrawTool = drawTool;
+        }
+        public DrawTool DrawTool { get; set; }
         public abstract void Run();
         public abstract void Draw();
     }
     class MoveObject : GameObject {
 
-        public MoveObject(DrawTool drawTool)
+        public MoveObject(DrawTool drawTool):base(drawTool)
         {
-            this.DrawTool = drawTool;
+            
         }
-        public DrawTool DrawTool { get; set; }
         public string Picture { get; set; }
         public string Name { get; set; }
         public Vector2 Point { get; set; }
@@ -357,7 +280,7 @@ namespace NampoSpace
 
     }
     
-    //誘導するの弾
+    //誘導するの弾?
     class Bellet2 : MoveObject
     {
         public int damege;
@@ -411,7 +334,7 @@ namespace NampoSpace
         public override void Run()
         {
             //throw new NotImplementedException();
-            if (Count % 100 < 10)
+            if (Count % 100 < 70)
             {
                 Vector2 preVector = new Vector2(Vector.X, Vector.Y);
                 preVector = Vector2.Normalize(preVector);
@@ -586,8 +509,172 @@ namespace NampoSpace
         }
 
     }
-    class Scene : GameObject
+    class StartScene : GameObject
     {
+        testCharacter Title,start,end,select;
+        UserInterface UserInterface;
+
+        public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool)
+        {
+            Title = new testCharacter(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
+            start = new testCharacter(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
+            end = new testCharacter(DrawTool, "おわり", new Vector2(700, 600), new Vector2(0, 0));
+            select = new testCharacter(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
+
+            UserInterface = userInterface;
+        }
+
+        public override void Run()
+        {
+            switch (UserInterface.command)
+            {
+                case 0x20://↑
+                    select.Point =  new Vector2(650, 500);
+                    break;
+
+                case 0x10://↓
+                    select.Point = new Vector2(650, 600);
+                    break;
+
+                case 0x01://Space//Aボタン
+                    //nampo.Shot();
+                    break;
+            }
+        }
+        public override void Draw()
+        {
+            Title.Draw();
+            start.Draw();
+            end.Draw();
+            select.Draw();
+        }
+    }
+
+    class GameScene : GameObject
+    {
+        UserInterface UserInterface;
+
+        //testキャラ
+        testCharacter nampo;
+        MoveObject mikataG, tekiG;
+
+        public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool)
+        {
+            this.UserInterface = userInterface;
+
+            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
+
+            //改善の余地あり
+            mikataG = new MoveObject(drawTool);
+            tekiG = new MoveObject(drawTool);
+
+            mikataG.Add(nampo);
+
+            for (int i = 0; i < 20; i++)
+            {
+                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0), nampo));
+            }
+        }
+
+        public override void Run()
+        {
+            switch (UserInterface.command)
+            {
+                case 0x20://↑
+                    nampo.Point = nampo.Point + new Vector2(0, -5);
+                    break;
+
+                case 0x80://←
+                    nampo.Point = nampo.Point + new Vector2(-5, 0);
+                    break;
+
+                case 0x10://↓
+                    nampo.Point = nampo.Point + new Vector2(0, +5);
+                    break;
+
+                case 0x40://→
+                    nampo.Point = nampo.Point + new Vector2(+5, 0);
+                    break;
+
+                case 0x01://Space//Aボタン
+                    nampo.Shot();
+                    break;
+            }
+
+            RunTask(mikataG);
+            RunTask(tekiG);
+
+            HitCheck((MoveObject)mikataG.NextTask, (MoveObject)tekiG.NextTask);
+        }
+        public override void Draw()
+        {
+            DrawTask(mikataG);
+            DrawTask(tekiG);
+        }
+
+        void HitCheck(MoveObject move1G, MoveObject move2G)
+        {
+            var temp1 = move1G;
+            var temp2 = move2G;
+
+            while (temp1 != null)
+            {
+                while (temp2 != null)
+                {
+                    if (
+                        (
+                         (temp1.Point.X >= temp2.Point.X && temp1.Point.X <= temp2.Point.X + 30) ||
+                         (temp2.Point.X >= temp1.Point.X && temp2.Point.X <= temp1.Point.X + 30)
+                         ) &&
+                        (
+                         (temp1.Point.Y >= temp2.Point.Y && temp1.Point.Y <= temp2.Point.Y + 30) ||
+                         (temp2.Point.Y >= temp1.Point.Y && temp2.Point.Y <= temp1.Point.Y + 30)
+                        )
+                       )
+                    {
+                        //あたった
+                        temp1.Remove();
+                        temp2.Remove();
+                        temp1.DrawTool.RemoveLabel(temp1.Name);
+                        temp2.DrawTool.RemoveLabel(temp2.Name);
+                    }
+
+
+                    temp2 = (MoveObject)temp2.NextTask;
+                }
+                temp1 = (MoveObject)temp1.NextTask;
+                temp2 = move2G;
+            }
+        }
+
+        void RunTask(GameObject gameobjectG)
+        {
+            GameObject temp = (GameObject)gameobjectG.NextTask;
+            while (temp != null)
+            {
+                temp.Run();
+                temp = (GameObject)temp.NextTask;
+            }
+        }
+
+        void DrawTask(GameObject gameobjectG)
+        {
+            GameObject temp = (GameObject)gameobjectG.NextTask;
+            while (temp != null)
+            {
+                temp.Draw();
+                temp = (GameObject)temp.NextTask;
+            }
+        }
+    }
+
+    class RessultScene : GameObject
+    {
+        public RessultScene(DrawTool drawTool) : base(drawTool)
+        {
+
+        }
+
         public override void Run()
         {
 
@@ -597,6 +684,5 @@ namespace NampoSpace
 
         }
     }
-
 
 }
