@@ -27,31 +27,54 @@ namespace Nampo_STG
 
 namespace NampoSpace
 {
+    enum SceneStats
+    {
+        start,game,end
+    }
+
     class GameMaster {
 
         DrawTool DrawTool;
         public UserInterface UserInterface;
-        StartScene StartScene;
-        GameScene GameScene;
+        GameObject CurrentScene;
+        SceneStats SceneStats,preSceneStats;
 
         public GameMaster(DrawTool drawTool)
         {
             this.DrawTool = drawTool;
             UserInterface = new UserInterface();
 
-            StartScene = new StartScene(DrawTool, UserInterface);
-            GameScene = new GameScene(DrawTool,UserInterface);
+            SceneStats = SceneStats.start;
+            preSceneStats = SceneStats.start;
 
+            CurrentScene = new StartScene(DrawTool, UserInterface, ref SceneStats);
+            //CurrentScene = new GameScene(DrawTool, UserInterface, ref SceneStats);
 
         }
 
         public void Run()
         {
-            GameScene.Run();
-            GameScene.Draw();
+            preSceneStats = SceneStats;
 
-            StartScene.Run();
-            StartScene.Draw();
+            CurrentScene.Run();
+            CurrentScene.Draw();
+
+            if (SceneStats != preSceneStats)
+            {
+                switch (SceneStats)
+                {
+                    case SceneStats.start:
+                        CurrentScene = new StartScene(DrawTool, UserInterface, ref SceneStats);
+                        break;
+                    case SceneStats.game:
+                        CurrentScene = new GameScene(DrawTool, UserInterface,ref SceneStats);
+                        break;
+                    case SceneStats.end:
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
     }
 
@@ -513,8 +536,9 @@ namespace NampoSpace
     {
         testCharacter Title,start,end,select;
         UserInterface UserInterface;
+        SceneStats SceneStats;
 
-        public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool)
+        public StartScene(DrawTool drawTool,UserInterface userInterface,ref SceneStats sceneStats):base(drawTool)
         {
             Title = new testCharacter(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
             start = new testCharacter(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
@@ -522,6 +546,7 @@ namespace NampoSpace
             select = new testCharacter(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
 
             UserInterface = userInterface;
+            this.SceneStats = sceneStats;
         }
 
         public override void Run()
@@ -537,7 +562,7 @@ namespace NampoSpace
                     break;
 
                 case 0x01://Space//Aボタン
-                    //nampo.Shot();
+                    SceneStats = SceneStats.game;
                     break;
             }
         }
@@ -553,14 +578,16 @@ namespace NampoSpace
     class GameScene : GameObject
     {
         UserInterface UserInterface;
+        SceneStats SceneStats;
 
         //testキャラ
         testCharacter nampo;
         MoveObject mikataG, tekiG;
 
-        public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool)
+        public GameScene(DrawTool drawTool, UserInterface userInterface,ref SceneStats sceneStats) : base(drawTool)
         {
             this.UserInterface = userInterface;
+            this.SceneStats = sceneStats;
 
             nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
 
@@ -570,7 +597,7 @@ namespace NampoSpace
 
             mikataG.Add(nampo);
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 10; i++)
             {
                 tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0), nampo));
             }
