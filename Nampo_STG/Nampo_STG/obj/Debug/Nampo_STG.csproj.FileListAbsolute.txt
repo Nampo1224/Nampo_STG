@@ -1,0 +1,10 @@
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\bin\Debug\Nampo_STG.exe.config
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\bin\Debug\Nampo_STG.exe
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\bin\Debug\Nampo_STG.pdb
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.csprojAssemblyReference.cache
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.Form1.resources
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.Properties.Resources.resources
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.csproj.GenerateResource.cache
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.csproj.CoreCompileInputs.cache
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.exe
+D:\Users\Nampo1224\Documents\GitHub\Nampo_STG\Nampo_STG\obj\Debug\Nampo_STG.pdb
