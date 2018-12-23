@@ -47,7 +47,7 @@ namespace NampoSpace
             SceneStats = SceneStats.start;
             preSceneStats = SceneStats.start;
 
-            CurrentScene = new StartScene(DrawTool, UserInterface, ref SceneStats);
+            CurrentScene = new StartScene(DrawTool, UserInterface);
             //CurrentScene = new GameScene(DrawTool, UserInterface, ref SceneStats);
 
         }
@@ -59,15 +59,17 @@ namespace NampoSpace
             CurrentScene.Run();
             CurrentScene.Draw();
 
+            SceneStats = CurrentScene.SceneStats;
+
             if (SceneStats != preSceneStats)
             {
                 switch (SceneStats)
                 {
                     case SceneStats.start:
-                        CurrentScene = new StartScene(DrawTool, UserInterface, ref SceneStats);
+                        CurrentScene = new StartScene(DrawTool, UserInterface);
                         break;
                     case SceneStats.game:
-                        CurrentScene = new GameScene(DrawTool, UserInterface,ref SceneStats);
+                        CurrentScene = new GameScene(DrawTool, UserInterface);
                         break;
                     case SceneStats.end:
                         break;
@@ -117,6 +119,7 @@ namespace NampoSpace
 
     }
     abstract class GameObject : NamTask {
+        public virtual SceneStats SceneStats { get; set; }
         public GameObject(DrawTool drawTool)
         {
             this.DrawTool = drawTool;
@@ -536,9 +539,9 @@ namespace NampoSpace
     {
         testCharacter Title,start,end,select;
         UserInterface UserInterface;
-        SceneStats SceneStats;
+        public override SceneStats SceneStats { set; get; }
 
-        public StartScene(DrawTool drawTool,UserInterface userInterface,ref SceneStats sceneStats):base(drawTool)
+        public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool)
         {
             Title = new testCharacter(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
             start = new testCharacter(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
@@ -546,7 +549,7 @@ namespace NampoSpace
             select = new testCharacter(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
 
             UserInterface = userInterface;
-            this.SceneStats = sceneStats;
+            this.SceneStats = SceneStats.start;
         }
 
         public override void Run()
@@ -563,6 +566,10 @@ namespace NampoSpace
 
                 case 0x01://Space//Aボタン
                     SceneStats = SceneStats.game;
+                    Title.DrawTool.RemoveLabel(Title.Name);
+                    start.DrawTool.RemoveLabel(start.Name);
+                    end.DrawTool.RemoveLabel(end.Name);
+                    select.DrawTool.RemoveLabel(select.Name);
                     break;
             }
         }
@@ -578,16 +585,16 @@ namespace NampoSpace
     class GameScene : GameObject
     {
         UserInterface UserInterface;
-        SceneStats SceneStats;
+        public override SceneStats SceneStats { set; get; }
 
         //testキャラ
         testCharacter nampo;
         MoveObject mikataG, tekiG;
 
-        public GameScene(DrawTool drawTool, UserInterface userInterface,ref SceneStats sceneStats) : base(drawTool)
+        public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool)
         {
             this.UserInterface = userInterface;
-            this.SceneStats = sceneStats;
+            this.SceneStats = SceneStats.game;
 
             nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
 
@@ -632,6 +639,8 @@ namespace NampoSpace
             RunTask(tekiG);
 
             HitCheck((MoveObject)mikataG.NextTask, (MoveObject)tekiG.NextTask);
+
+            RessultCheck();
         }
         public override void Draw()
         {
@@ -693,6 +702,24 @@ namespace NampoSpace
                 temp = (GameObject)temp.NextTask;
             }
         }
+
+        void RessultCheck()
+        {
+            int Count = 0;
+
+            GameObject temp = (GameObject)tekiG.NextTask;
+            while (temp != null)
+            {
+                Count++;
+                temp = (GameObject)temp.NextTask;
+            }
+
+            if(Count < 2)
+            {
+                SceneStats = SceneStats.start;
+            }
+        }
+
     }
 
     class RessultScene : GameObject
