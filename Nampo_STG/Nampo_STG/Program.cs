@@ -43,7 +43,7 @@ namespace NampoSpace
 
             //DrawTool.AddLabel("@");
             //DrawTool.Draw("@", new Vector2(200, 100));
-            nampo = new testCharacter(DrawTool, "@", new Vector2(1000, 600), new Vector2(1, 1));
+            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 10), new Vector2(0, 0));
             teki1 = new testCharacter(DrawTool, "#", new Vector2(10, 10), new Vector2((float)1.5, 0));
             teki2 = new testCharacter(DrawTool, "P", new Vector2(20, 20), new Vector2(1, 0));
 
@@ -58,12 +58,30 @@ namespace NampoSpace
 
         public void Run()
         {
-            
-            nampo.Run(UserInterface);
-            nampo.Draw();
+            switch (UserInterface.command)
+            {
+                case 0x20://↑
+                    nampo.Point = nampo.Point + new Vector2(0, -5);
+                    break;
 
-            RunTask((GameObject)nampo);
+                case 0x80://←
+                    nampo.Point = nampo.Point + new Vector2(-5, 0);
+                    break;
 
+                case 0x10://↓
+                    nampo.Point = nampo.Point + new Vector2(0, +5);
+                    break;
+
+                case 0x40://→
+                    nampo.Point = nampo.Point + new Vector2(+5, 0);
+                    break;
+
+                case 0x01://Space//Aボタン
+                    nampo.Shot();
+                    break;
+            }
+
+            RunTask(mikataG);
             RunTask(tekiG);
 
             HitCheck((MoveObject)mikataG.NextTask, (MoveObject)tekiG.NextTask);
@@ -81,12 +99,12 @@ namespace NampoSpace
                 {
                     if (
                         (
-                         (temp1.Point.X > temp2.Point.X && temp1.Point.X < temp2.Point.X + 100) ||
-                         (temp2.Point.X > temp1.Point.X && temp2.Point.X < temp1.Point.X + 100)
+                         (temp1.Point.X >= temp2.Point.X && temp1.Point.X <= temp2.Point.X + 30) ||
+                         (temp2.Point.X >= temp1.Point.X && temp2.Point.X <= temp1.Point.X + 30)
                          ) &&
                         (
-                         (temp1.Point.Y > temp2.Point.Y && temp1.Point.Y < temp2.Point.Y + 100) ||
-                         (temp2.Point.Y > temp1.Point.Y && temp2.Point.Y < temp1.Point.Y + 100)
+                         (temp1.Point.Y >= temp2.Point.Y && temp1.Point.Y <= temp2.Point.Y + 30) ||
+                         (temp2.Point.Y >= temp1.Point.Y && temp2.Point.Y <= temp1.Point.Y + 30)
                         )
                        )
                     {
@@ -99,6 +117,7 @@ namespace NampoSpace
                         temp2 = (MoveObject)temp2.NextTask;
                 }
                 temp1 = (MoveObject)temp1.NextTask;
+                temp2 = move2G;
             }
         }
 
@@ -191,6 +210,8 @@ namespace NampoSpace
     {
         public int Hp { get; set; }
         public bool isShot { get; set; }
+        public int IntervalShot { get; set; }
+        public int ShotTimer { get; set; }
 
         public testCharacter(DrawTool drawTool,String pic,Vector2 point,Vector2 vec):base(drawTool)
         {
@@ -200,38 +221,24 @@ namespace NampoSpace
             this.Point = point;
             this.Vector = vec;
 
+            isShot = false;
+            IntervalShot = 36;
+            ShotTimer = 0;
+
             DrawTool.AddLabel(this.Picture);
         }
 
         public override void Run()
         {
             Point = Point + Vector;
-        }
-        public void Run(UserInterface ui)
-        {
-            switch (ui.command)
+            ShotTimer++;
+            if(ShotTimer > IntervalShot)
             {
-                case 0x20://↑
-                    Point = Point + new Vector2(0,-5);
-                    break;
-
-                case 0x80://←
-                    Point = Point + new Vector2(-5,0);
-                    break;
-
-                case 0x10://↓
-                    Point = Point + new Vector2(0, +5);
-                    break;
-
-                case 0x40://→
-                    Point = Point + new Vector2(+5, 0);
-                    break;
-
-                case 0x01://Space//Aボタン
-                    Shot();
-                    break;
+                isShot = false;
+                ShotTimer = 0;
             }
         }
+
         public override void Draw()
         {
             DrawTool.Draw(Picture, Point);
@@ -242,7 +249,7 @@ namespace NampoSpace
             if(isShot == false)
             {
                 this.Add(new Bellet1(DrawTool, Point));
-                //isShot = true;
+                isShot = true;
             }
         }
     }
