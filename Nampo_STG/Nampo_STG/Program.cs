@@ -33,7 +33,7 @@ namespace NampoSpace
         public UserInterface UserInterface;
 
         //testキャラ
-        testCharacter nampo,teki1,teki2;
+        testCharacter nampo;
         MoveObject mikataG, tekiG;
 
         public GameMaster(DrawTool drawTool)
@@ -43,17 +43,18 @@ namespace NampoSpace
 
             //DrawTool.AddLabel("@");
             //DrawTool.Draw("@", new Vector2(200, 100));
-            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 10), new Vector2(0, 0));
-            teki1 = new testCharacter(DrawTool, "#", new Vector2(10, 10), new Vector2((float)1.5, 0));
-            teki2 = new testCharacter(DrawTool, "P", new Vector2(20, 20), new Vector2(1, 0));
+            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
 
             //改善の余地あり
             mikataG = new MoveObject(drawTool);
             tekiG = new MoveObject(drawTool);
 
             mikataG.Add(nampo);
-            tekiG.Add(teki1);
-            tekiG.Add(teki2);
+
+            for (int i = 0; i < 10; i++)
+            {
+                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0)));
+            }
         }
 
         public void Run()
@@ -111,6 +112,8 @@ namespace NampoSpace
                         //あたった
                         temp1.Remove();
                         temp2.Remove();
+                        temp1.DrawTool.RemoveLabel(temp1.Name);
+                        temp2.DrawTool.RemoveLabel(temp2.Name);
                     }
 
 
@@ -133,23 +136,23 @@ namespace NampoSpace
         }
     }
 
-    abstract class NumTask {
-        public NumTask PreTask { get; set; }
-        public NumTask NextTask { get; set; }
+    abstract class NamTask {
+        public NamTask PreTask { get; set; }
+        public NamTask NextTask { get; set; }
 
-        public NumTask()
+        public NamTask()
         {
             PreTask = null;
             NextTask = null;
         }
 
-        public NumTask(NumTask pretask,NumTask nexttask)
+        public NamTask(NamTask pretask,NamTask nexttask)
         {
             this.PreTask = pretask;
             this.NextTask = nexttask;
         }
 
-        public void Add(NumTask addtask)
+        public void Add(NamTask addtask)
         {
             addtask.NextTask = this.NextTask;
             addtask.PreTask = this;
@@ -171,18 +174,9 @@ namespace NampoSpace
         }
 
     }
-    abstract class GameObject : NumTask {
+    abstract class GameObject : NamTask {
         public abstract void Run();
         public abstract void Draw();
-    }
-
-    class Scene : GameObject {
-        public override void Run() {
-            
-        }
-        public override void Draw() {
-
-        }
     }
     class MoveObject : GameObject {
 
@@ -191,7 +185,8 @@ namespace NampoSpace
             this.DrawTool = drawTool;
         }
         public DrawTool DrawTool { get; set; }
-        public String Picture { get; set; }
+        public string Picture { get; set; }
+        public string Name { get; set; }
         public Vector2 Point { get; set; }
         public Vector2 Vector { get; set; }
         public override void Run()
@@ -213,7 +208,7 @@ namespace NampoSpace
         public int IntervalShot { get; set; }
         public int ShotTimer { get; set; }
 
-        public testCharacter(DrawTool drawTool,String pic,Vector2 point,Vector2 vec):base(drawTool)
+        public testCharacter(DrawTool drawTool,string pic,Vector2 point,Vector2 vec):base(drawTool)
         {
             this.Hp = 10;
             this.DrawTool = drawTool;
@@ -222,10 +217,10 @@ namespace NampoSpace
             this.Vector = vec;
 
             isShot = false;
-            IntervalShot = 36;
+            IntervalShot = 6;
             ShotTimer = 0;
 
-            DrawTool.AddLabel(this.Picture);
+            Name = DrawTool.AddLabel(this.Picture);
         }
 
         public override void Run()
@@ -241,7 +236,7 @@ namespace NampoSpace
 
         public override void Draw()
         {
-            DrawTool.Draw(Picture, Point);
+            DrawTool.Draw(Name, Point);
         }
 
         public void Shot()
@@ -250,9 +245,46 @@ namespace NampoSpace
             {
                 this.Add(new Bellet1(DrawTool, Point));
                 isShot = true;
+                ShotTimer = 0;
             }
         }
     }
+
+    class teki : testCharacter
+    {
+        public teki(DrawTool drawTool, string pic, Vector2 point, Vector2 vec) : base(drawTool, pic, point, vec)
+        {
+            IntervalShot = 36;
+        }
+
+        public override void Run()
+        {
+            Point = Point + Vector;
+            ShotTimer++;
+            if (ShotTimer > IntervalShot)
+            {
+                isShot = false;
+                ShotTimer = 0;
+            }
+            Shot();
+        }
+
+        public override void Draw()
+        {
+            DrawTool.Draw(Name, Point);
+        }
+
+        new public void Shot()
+        {
+            if (isShot == false)
+            {
+                this.Add(new Bellet1(DrawTool, Point,true));
+                isShot = true;
+                ShotTimer = 0;
+            }
+        }
+    }
+
     /*
     class Character : MoveObject
     {
@@ -283,7 +315,19 @@ namespace NampoSpace
             Count = 0;
             LimitCount = 600;
 
-            drawTool.AddLabel(Picture);
+            Name = drawTool.AddLabel(Picture);
+        }
+
+        public Bellet1(DrawTool drawTool, Vector2 point,bool teki) : base(drawTool)
+        {
+            damege = 5;
+            Picture = "・";
+            Point = point;
+            Vector = new Vector2(0, 6);
+            Count = 0;
+            LimitCount = 600;
+
+            Name = drawTool.AddLabel(Picture);
         }
 
         public override void Run()
@@ -296,13 +340,14 @@ namespace NampoSpace
             if(Count > LimitCount)
             {
                 Remove();
+                DrawTool.RemoveLabel(Name);
             }
         }
 
         public override void Draw()
         {
             //throw new NotImplementedException();
-            DrawTool.Draw(Picture, Point);
+            DrawTool.Draw(Name, Point);
         }
 
 
@@ -311,6 +356,7 @@ namespace NampoSpace
     class DrawTool
     {
         public Form form;
+        static int id = 0;
 
         public DrawTool(Form form)
         {
@@ -318,11 +364,12 @@ namespace NampoSpace
 
         }
 
-        public void AddLabel(string moji)
+        public string AddLabel(string moji)
         {
             // Create an instance of a Label.
             Label label1 = new Label();
 
+            id++;
             // Set the border to a three-dimensional border.
             label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             // Set the ImageList to use for displaying an image.
@@ -339,12 +386,22 @@ namespace NampoSpace
             //文字のフォントとフォントサイズ変更
             label1.Font = new Font(label1.Font.FontFamily, 20);
 
-            label1.Name = moji;
+            label1.Name = moji + id.ToString();
 
             /* Set the size of the control based on the PreferredHeight and PreferredWidth values. */
             label1.Size = new Size(label1.PreferredWidth, label1.PreferredHeight);
 
             form.Controls.Add(label1);
+
+            return label1.Name;
+        }
+
+        public void RemoveLabel(string moji)
+        {
+            foreach (var item in this.form.Controls.Find(moji, true))
+            {
+                form.Controls.Remove(item);
+            }
         }
 
         public void Draw(String moji,Vector2 point)
@@ -434,7 +491,17 @@ namespace NampoSpace
         }
 
     }
+    class Scene : GameObject
+    {
+        public override void Run()
+        {
 
+        }
+        public override void Draw()
+        {
+
+        }
+    }
 
 
 }
