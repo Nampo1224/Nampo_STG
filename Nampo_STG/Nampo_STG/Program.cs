@@ -36,7 +36,7 @@ namespace NampoSpace
 
         DrawTool DrawTool;
         public UserInterface UserInterface;
-        GameObject CurrentScene;
+        Scene CurrentScene;
         SceneStats SceneStats,preSceneStats;
 
         public GameMaster(DrawTool drawTool)
@@ -48,7 +48,6 @@ namespace NampoSpace
             preSceneStats = SceneStats.start;
 
             CurrentScene = new StartScene(DrawTool, UserInterface);
-            //CurrentScene = new GameScene(DrawTool, UserInterface, ref SceneStats);
 
         }
 
@@ -119,7 +118,6 @@ namespace NampoSpace
 
     }
     abstract class GameObject : NamTask {
-        public virtual SceneStats SceneStats { get; set; }
         public GameObject(DrawTool drawTool)
         {
             this.DrawTool = drawTool;
@@ -128,6 +126,19 @@ namespace NampoSpace
         public abstract void Run();
         public abstract void Draw();
     }
+
+    abstract class Scene : GameObject
+    {
+        public virtual SceneStats SceneStats { get; set; }
+
+        protected UserInterface UserInterface;
+
+        public Scene(DrawTool drawTool,UserInterface userInterface) : base(drawTool)
+        {
+            UserInterface = userInterface;
+        }
+    }
+
     class MoveObject : GameObject {
 
         public MoveObject(DrawTool drawTool):base(drawTool)
@@ -535,20 +546,18 @@ namespace NampoSpace
         }
 
     }
-    class StartScene : GameObject
+    class StartScene : Scene
     {
         testCharacter Title,start,end,select;
-        UserInterface UserInterface;
         public override SceneStats SceneStats { set; get; }
 
-        public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool)
+        public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool,userInterface)
         {
             Title = new testCharacter(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
             start = new testCharacter(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
             end = new testCharacter(DrawTool, "おわり", new Vector2(700, 600), new Vector2(0, 0));
             select = new testCharacter(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
 
-            UserInterface = userInterface;
             this.SceneStats = SceneStats.start;
         }
 
@@ -582,18 +591,16 @@ namespace NampoSpace
         }
     }
 
-    class GameScene : GameObject
+    class GameScene : Scene
     {
-        UserInterface UserInterface;
         public override SceneStats SceneStats { set; get; }
 
         //testキャラ
         testCharacter nampo;
         MoveObject mikataG, tekiG;
 
-        public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool)
+        public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool,userInterface)
         {
-            this.UserInterface = userInterface;
             this.SceneStats = SceneStats.game;
 
             nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
