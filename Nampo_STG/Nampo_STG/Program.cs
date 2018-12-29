@@ -218,20 +218,27 @@ namespace NampoSpace
         public ManageMoveObject BelletGroup;
 
         public Character(DrawTool drawTool) : base(drawTool) { }
-        public Character(DrawTool drawTool, string pic, Vector2 point,ManageMoveObject managebellet) : this(drawTool)
+        public Character(DrawTool drawTool, string pic, Vector2 point) : this(drawTool)
         {
             this.Hp = 10;
             this.DrawTool = drawTool;
             this.Picture = pic;
             this.Point = point;
-            this.Vector = new Vector2(0,0);
-            this.BelletGroup = managebellet;
+            this.Vector = new Vector2(0, 0);
 
             IsShot = false;
             IntervalShot = 6;
             ShotTimer = 0;
 
             Name = DrawTool.AddLabel(this.Picture);
+        }
+        public Character(DrawTool drawTool, string pic, Vector2 point, Vector2 vec) : this(drawTool, pic, point)
+        {
+            this.Vector = vec;
+        }
+        public Character(DrawTool drawTool, string pic, Vector2 point, ManageMoveObject managebellet) : this(drawTool,pic,point)
+        {
+            this.BelletGroup = managebellet;
         }
         public Character(DrawTool drawTool, string pic, Vector2 point, Vector2 vec, ManageMoveObject managebellet) : this(drawTool,pic,point,managebellet)
         {
@@ -257,60 +264,11 @@ namespace NampoSpace
         {
             if (IsShot == false)
             {
+                //3Way
                 BelletGroup += (MoveObject)new Bellet1(DrawTool, Point);
+                BelletGroup += (MoveObject)new Bellet1(DrawTool, Point, new Vector2(-2, -3));
+                BelletGroup += (MoveObject)new Bellet1(DrawTool, Point, new Vector2(+2, -3));
                 IsShot = true;
-                ShotTimer = 0;
-            }
-        }
-    }
-
-    //テスト用キャラクター
-    class testCharacter : MoveObject
-    {
-        public int Hp { get; set; }
-        public bool isShot { get; set; }
-        public int IntervalShot { get; set; }
-        public int ShotTimer { get; set; }
-
-        public testCharacter(DrawTool drawTool,string pic,Vector2 point,Vector2 vec):base(drawTool)
-        {
-            this.Hp = 10;
-            this.DrawTool = drawTool;
-            this.Picture = pic;
-            this.Point = point;
-            this.Vector = vec;
-
-            isShot = false;
-            IntervalShot = 6;
-            ShotTimer = 0;
-
-            Name = DrawTool.AddLabel(this.Picture);
-
-        }
-
-        public override void Run()
-        {
-            Point = Point + Vector;
-            ShotTimer++;
-            if(ShotTimer > IntervalShot)
-            {
-                isShot = false;
-                ShotTimer = 0;
-            }
- 
-        }
-
-        public override void Draw()
-        {
-            DrawTool.Draw(Name, Point);
-        }
-
-        public void Shot()
-        {
-            if(isShot == false)
-            {
-                this.Add(new Bellet1(DrawTool, Point));
-                isShot = true;
                 ShotTimer = 0;
             }
         }
@@ -387,16 +345,9 @@ namespace NampoSpace
             Name = drawTool.AddLabel(Picture);
         }
 
-        public Bellet1(DrawTool drawTool, Vector2 point,bool teki) : base(drawTool)
+        public Bellet1(DrawTool drawTool, Vector2 point, Vector2 vec) : this(drawTool, point)
         {
-            damege = 5;
-            Picture = "・";
-            Point = point;
-            Vector = new Vector2(0, 6);
-            Count = 0;
-            LimitCount = 600;
-
-            Name = drawTool.AddLabel(Picture);
+            Vector = vec;
         }
 
         public override void Run()
@@ -653,15 +604,15 @@ namespace NampoSpace
     }
     class StartScene : Scene
     {
-        testCharacter Title,start,end,select;
+        Character Title,start,end,select;
         public override SceneStats SceneStats { set; get; }
 
         public StartScene(DrawTool drawTool,UserInterface userInterface):base(drawTool,userInterface)
         {
-            Title = new testCharacter(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
-            start = new testCharacter(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
-            end = new testCharacter(DrawTool, "おわり", new Vector2(700, 600), new Vector2(0, 0));
-            select = new testCharacter(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
+            Title = new Character(DrawTool, "Nampo Shooting !!(仮)", new Vector2(600, 300), new Vector2(0, 0));
+            start = new Character(DrawTool, "スタート", new Vector2(700, 500), new Vector2(0, 0));
+            end = new Character(DrawTool, "おわり", new Vector2(700, 600), new Vector2(0, 0));
+            select = new Character(DrawTool, "→", new Vector2(650, 500), new Vector2(0, 0));
 
             this.SceneStats = SceneStats.start;
         }
@@ -827,26 +778,6 @@ namespace NampoSpace
                 }
                 temp1 = (MoveObject)temp1.NextTask;
                 temp2 = move2G;
-            }
-        }
-
-        void RunTask(GameObject gameobjectG)
-        {
-            GameObject temp = (GameObject)gameobjectG.NextTask;
-            while (temp != null)
-            {
-                temp.Run();
-                temp = (GameObject)temp.NextTask;
-            }
-        }
-
-        void DrawTask(GameObject gameobjectG)
-        {
-            GameObject temp = (GameObject)gameobjectG.NextTask;
-            while (temp != null)
-            {
-                temp.Draw();
-                temp = (GameObject)temp.NextTask;
             }
         }
 
