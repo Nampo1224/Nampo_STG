@@ -143,7 +143,7 @@ namespace NampoSpace
         }
     }
 
-    class MoveObject : GameObject {
+    abstract class MoveObject : GameObject {
 
         public MoveObject(DrawTool drawTool):base(drawTool)
         {
@@ -153,15 +153,115 @@ namespace NampoSpace
         public string Name { get; set; }
         public Vector2 Point { get; set; }
         public Vector2 Vector { get; set; }
+
+
+    }
+
+    class ManageMoveObject : GameObject
+    {
+        public MoveObject MoveObjectGroup{get;set;}
+
+        public ManageMoveObject(DrawTool drawTool) : base(drawTool)
+        {
+            MoveObjectGroup = new Character(DrawTool);
+        }
+
         public override void Run()
         {
+            GameObject temp = (GameObject)MoveObjectGroup.NextTask;
+            while (temp != null)
+            {
+                temp.Run();
+                temp = (GameObject)temp.NextTask;
+            }
+        }
 
+        public override void Draw()
+        {
+            GameObject temp = (GameObject)MoveObjectGroup.NextTask;
+            while (temp != null)
+            {
+                temp.Draw();
+                temp = (GameObject)temp.NextTask;
+            }
+        }
+
+        public void Clear()
+        {
+            MoveObject temp = (MoveObject)MoveObjectGroup.NextTask;
+            while (temp != null)
+            {
+                temp.Remove();
+                temp.DrawTool.RemoveLabel(temp.Name);
+                temp = (MoveObject)temp.NextTask;
+            }
+        }
+
+        public void Add(MoveObject AddMoveObject)
+        {
+            MoveObjectGroup.Add(AddMoveObject);
+        }
+
+        public static ManageMoveObject operator+ (ManageMoveObject manage,MoveObject MoveObject)
+        {
+            manage.Add(MoveObject);
+            return manage;
+        }
+    }
+
+    class Character : MoveObject
+    {
+        public int Hp { get; set; }
+        public bool IsShot { get; set; }
+        public int IntervalShot { get; set; }
+        public int ShotTimer { get; set; }
+        public ManageMoveObject BelletGroup;
+
+        public Character(DrawTool drawTool) : base(drawTool) { }
+        public Character(DrawTool drawTool, string pic, Vector2 point,ManageMoveObject managebellet) : this(drawTool)
+        {
+            this.Hp = 10;
+            this.DrawTool = drawTool;
+            this.Picture = pic;
+            this.Point = point;
+            this.Vector = new Vector2(0,0);
+            this.BelletGroup = managebellet;
+
+            IsShot = false;
+            IntervalShot = 6;
+            ShotTimer = 0;
+
+            Name = DrawTool.AddLabel(this.Picture);
+        }
+        public Character(DrawTool drawTool, string pic, Vector2 point, Vector2 vec, ManageMoveObject managebellet) : this(drawTool,pic,point,managebellet)
+        {
+            this.Vector = vec;
+        }
+
+        public override void Run()
+        {
+            Point = Point + Vector;
+            ShotTimer++;
+            if (ShotTimer > IntervalShot)
+            {
+                IsShot = false;
+                ShotTimer = 0;
+            }
         }
         public override void Draw()
         {
-
+            DrawTool.Draw(Name, Point);
         }
 
+        public void Shot()
+        {
+            if (IsShot == false)
+            {
+                BelletGroup += (MoveObject)new Bellet1(DrawTool, Point);
+                IsShot = true;
+                ShotTimer = 0;
+            }
+        }
     }
 
     //テスト用キャラクター
@@ -185,6 +285,7 @@ namespace NampoSpace
             ShotTimer = 0;
 
             Name = DrawTool.AddLabel(this.Picture);
+
         }
 
         public override void Run()
@@ -215,10 +316,10 @@ namespace NampoSpace
         }
     }
 
-    class teki : testCharacter
+    class teki : Character
     {
         MoveObject target;
-        public teki(DrawTool drawTool, string pic, Vector2 point, Vector2 vec,MoveObject target) : base(drawTool, pic, point, vec)
+        public teki(DrawTool drawTool, string pic, Vector2 point, Vector2 vec,MoveObject target,ManageMoveObject bulletGroup) : base(drawTool, pic, point,vec,bulletGroup)
         {
             IntervalShot = 150;
             this.target = target;
@@ -231,7 +332,7 @@ namespace NampoSpace
             ShotTimer++;
             if (ShotTimer > IntervalShot)
             {
-                isShot = false;
+                IsShot = false;
                 ShotTimer = 0;
             }
             Shot();
@@ -244,10 +345,10 @@ namespace NampoSpace
 
         new public void Shot()
         {
-            if (isShot == false)
+            if (IsShot == false)
             {
-                this.Add(new Bellet2(DrawTool, Point,target));
-                isShot = true;
+                BelletGroup.Add(new Bellet2(DrawTool, Point,target));
+                IsShot = true;
                 ShotTimer = 0;
             }
         }
@@ -600,24 +701,27 @@ namespace NampoSpace
         public override SceneStats SceneStats { set; get; }
 
         //testキャラ
-        testCharacter nampo;
-        MoveObject mikataG, tekiG;
+        Character nampo;
+
+        //キャラクターマネージャー
+        ManageMoveObject Mikata, Teki, MikataBellet, TekiBellet;
 
         public GameScene(DrawTool drawTool, UserInterface userInterface) : base(drawTool,userInterface)
         {
             this.SceneStats = SceneStats.game;
+                        
+            Mikata = new ManageMoveObject(drawTool);
+            Teki = new ManageMoveObject(drawTool);
+            MikataBellet = new ManageMoveObject(drawTool);
+            TekiBellet = new ManageMoveObject(drawTool);
 
-            nampo = new testCharacter(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0));
+            nampo = new Character(DrawTool, "@", new Vector2(500, 600), new Vector2(0, 0), MikataBellet);
 
-            //改善の余地あり
-            mikataG = new MoveObject(drawTool);
-            tekiG = new MoveObject(drawTool);
-
-            mikataG.Add(nampo);
+            Mikata += nampo;
 
             for (int i = 0; i < 10; i++)
             {
-                tekiG.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0), nampo));
+                Teki.Add(new teki(DrawTool, "P", new Vector2(10 + 10 * i, 10 + 30 * i), new Vector2(1, 0), nampo,TekiBellet));
             }
         }
 
@@ -664,17 +768,31 @@ namespace NampoSpace
                 nampo.Shot();
             }
 
-            RunTask(mikataG);
-            RunTask(tekiG);
+            Mikata.Run();
+            MikataBellet.Run();
+            Teki.Run();
+            TekiBellet.Run();
 
-            HitCheck((MoveObject)mikataG.NextTask, (MoveObject)tekiG.NextTask);
+            HitCheck((MoveObject)Mikata.MoveObjectGroup.NextTask, (MoveObject)Teki.MoveObjectGroup.NextTask);
 
-            RessultCheck();
+            HitCheck((MoveObject)MikataBellet.MoveObjectGroup.NextTask, (MoveObject)Teki.MoveObjectGroup.NextTask);
+            HitCheck((MoveObject)Mikata.MoveObjectGroup.NextTask, (MoveObject)TekiBellet.MoveObjectGroup.NextTask);
+
+            if (RessultCheck())
+            {
+                //ゲーム終了処理
+                Mikata.Clear();
+                MikataBellet.Clear();
+                Teki.Clear();
+                TekiBellet.Clear();
+            }
         }
         public override void Draw()
         {
-            DrawTask(mikataG);
-            DrawTask(tekiG);
+            Mikata.Draw();
+            MikataBellet.Draw();
+            Teki.Draw();
+            TekiBellet.Draw();
         }
 
         void HitCheck(MoveObject move1G, MoveObject move2G)
@@ -732,11 +850,12 @@ namespace NampoSpace
             }
         }
 
-        void RessultCheck()
+        //ゲーム終了ならTrue
+        bool RessultCheck()
         {
             int Count = 0;
 
-            GameObject temp = (GameObject)tekiG.NextTask;
+            GameObject temp = (GameObject)Teki.MoveObjectGroup.NextTask;
             while (temp != null)
             {
                 Count++;
@@ -746,7 +865,10 @@ namespace NampoSpace
             if(Count < 2)
             {
                 SceneStats = SceneStats.start;
+                return true;
             }
+
+            return false;
         }
 
     }
