@@ -32,6 +32,7 @@
             this.Chara = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.Clock = new System.Windows.Forms.Timer(this.components);
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // Chara
@@ -58,6 +59,12 @@
             this.Clock.Interval = 17;
             this.Clock.Tick += new System.EventHandler(this.Clock_Tick);
             // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 3;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -80,6 +87,7 @@
         private System.Windows.Forms.Label Chara;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer Clock;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 

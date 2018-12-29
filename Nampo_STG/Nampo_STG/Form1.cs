@@ -41,5 +41,10 @@ namespace Nampo_STG
         {
             gm.UserInterface.KeyUp(e);
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            gm.Draw();
+        }
     }
 }

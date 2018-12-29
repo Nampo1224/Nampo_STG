@@ -56,7 +56,6 @@ namespace NampoSpace
             preSceneStats = SceneStats;
 
             CurrentScene.Run();
-            CurrentScene.Draw();
 
             SceneStats = CurrentScene.SceneStats;
 
@@ -76,6 +75,11 @@ namespace NampoSpace
                         break;
                 }
             }
+        }
+
+        public void Draw()
+        {
+            CurrentScene.Draw();
         }
     }
 
@@ -619,27 +623,45 @@ namespace NampoSpace
 
         public override void Run()
         {
-            switch (UserInterface.command)
+            switch (UserInterface.command & 0xF0)
             {
                 case 0x20://↑
                     nampo.Point = nampo.Point + new Vector2(0, -5);
+                    break;
+
+                case 0xA0://←↑
+                    nampo.Point = nampo.Point + new Vector2(-5, -5);
                     break;
 
                 case 0x80://←
                     nampo.Point = nampo.Point + new Vector2(-5, 0);
                     break;
 
+                case 0x90://←↓
+                    nampo.Point = nampo.Point + new Vector2(-5, +5);
+                    break;
+
                 case 0x10://↓
                     nampo.Point = nampo.Point + new Vector2(0, +5);
+                    break;
+
+                case 0x50://↓→
+                    nampo.Point = nampo.Point + new Vector2(+5, +5);
                     break;
 
                 case 0x40://→
                     nampo.Point = nampo.Point + new Vector2(+5, 0);
                     break;
 
-                case 0x01://Space//Aボタン
-                    nampo.Shot();
+                case 0x60://→↑
+                    nampo.Point = nampo.Point + new Vector2(+5, -5);
                     break;
+            }
+
+            //Aボタン
+            if((UserInterface.command & 0x01) == 0x01)
+            {
+                nampo.Shot();
             }
 
             RunTask(mikataG);
