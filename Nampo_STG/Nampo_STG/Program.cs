@@ -21,6 +21,18 @@ namespace Nampo_STG
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+
+            /* ToDo:
+             *      ・衝突判定の最適化（4分木空間）
+             *      ・衝突判定クラス（＋衝突タイプクラス）
+             *      ・アニメーションクラス
+             *      ・敵の生成・弾の生成(Factory)クラス
+             *      ・エフェクトクラス（※→∵→×→・）
+             *      ・サウンドツールクラス
+             *      ・C#スクリプトによる弾・敵・アニメーションの作成
+             *      ・C# + OpenGLによる描画(DrawToolクラス改善)
+             *      ・デリゲート・イベントをいい感じで使いたい（インターフェースも）
+             */
         }
     }
 }
